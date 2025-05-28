@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/urusofam/calculatorRestAPI/config"
+	"log/slog"
+	"os"
 )
 
 func main() {
@@ -9,5 +11,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = config.Server
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger.Info("config file loaded", slog.String("cfg", config.Server.Host))
 }
