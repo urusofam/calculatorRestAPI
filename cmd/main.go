@@ -4,25 +4,29 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/urusofam/calculatorRestAPI/config"
+	"github.com/urusofam/calculatorRestAPI/http/handlers"
 	"log/slog"
-	"net/http"
 	"os"
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	config, err := config.LoadConfig()
 	if err != nil {
-		panic(err)
+		logger.Error(err.Error())
 	}
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("config file loaded", slog.String("cfg", config.Server.Host))
 
 	router := gin.Default()
+	err = router.SetTrustedProxies(nil)
+	if err != nil {
+		logger.Error(err.Error())
+	}
 
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Привет, Gin!")
-	})
+	router.GET("/calculations", handlers.GetCalculations)
 
-	router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port))
+	if err = router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)); err != nil {
+		logger.Error(err.Error())
+	}
 }
