@@ -37,7 +37,7 @@ func main() {
 	logger.Info("connected to database")
 	defer conn.Close(context.Background())
 
-	router, err := server.NewServer()
+	router, err := server.InitServer()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)

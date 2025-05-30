@@ -6,7 +6,7 @@ import (
 	"github.com/urusofam/calculatorRestAPI/internal/server/handlers"
 )
 
-func NewServer() (*gin.Engine, error) {
+func InitServer() (*gin.Engine, error) {
 	router := gin.Default()
 
 	err := router.SetTrustedProxies(nil)
