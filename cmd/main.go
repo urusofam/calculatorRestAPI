@@ -22,7 +22,7 @@ func main() {
 	logger.Info("config file loaded", slog.String("cfg", config.Server.Host))
 
 	dbURL := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s",
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		config.Database.User,
 		config.Database.Pass,
 		config.Database.Host,
