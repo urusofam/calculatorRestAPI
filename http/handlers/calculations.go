@@ -75,3 +75,17 @@ func PatchCalculation(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("calculation with id %s not found", id)})
 }
+
+func DeleteCalculation(c *gin.Context) {
+	id := c.Param("id")
+
+	for i, calc := range calculations {
+		if calc.ID == id {
+			calculations = append(calculations[:i], calculations[i+1:]...)
+			c.IndentedJSON(http.StatusOK, id)
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("calculation with id %s not found", id)})
+}

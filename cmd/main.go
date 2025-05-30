@@ -29,6 +29,7 @@ func main() {
 	router.GET("/calculations", handlers.GetCalculations)
 	router.POST("/calculations", handlers.PostCalculation)
 	router.PATCH("/calculations/:id", handlers.PatchCalculation)
+	router.DELETE("/calculations/:id", handlers.DeleteCalculation)
 
 	if err = router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)); err != nil {
 		logger.Error(err.Error())
