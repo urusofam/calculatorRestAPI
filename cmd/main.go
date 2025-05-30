@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/urusofam/calculatorRestAPI/config"
 	"github.com/urusofam/calculatorRestAPI/http/handlers"
@@ -24,6 +25,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
+	router.Use(cors.Default())
 	router.GET("/calculations", handlers.GetCalculations)
 
 	if err = router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)); err != nil {
