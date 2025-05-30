@@ -1,11 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"github.com/urusofam/calculatorRestAPI/config"
 	"github.com/urusofam/calculatorRestAPI/internal/server/router"
+	"github.com/urusofam/calculatorRestAPI/internal/storage"
 	"log/slog"
 	"os"
 )
@@ -29,20 +28,15 @@ func main() {
 		cfg.Database.Name,
 	)
 
-	conn, err := pgx.Connect(context.Background(), dbURL)
+	strg, err := storage.NewStorage(dbURL)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	logger.Info("connected to database")
-	defer func(conn *pgx.Conn, ctx context.Context) {
-		err := conn.Close(ctx)
-		if err != nil {
-			logger.Error(err.Error())
-		}
-	}(conn, context.Background())
+	logger.Info("connected to database", slog.String("url", dbURL))
+	defer strg.Close()
 
-	rout, err := router.InitRouter()
+	rout, err := router.InitRouter(strg)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)

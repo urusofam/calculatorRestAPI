@@ -1,4 +1,4 @@
-package calcualtion
+package calculation
 
 type Calculation struct {
 	ID         string `json:"id"`

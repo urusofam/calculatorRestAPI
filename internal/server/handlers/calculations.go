@@ -5,12 +5,11 @@ import (
 	"github.com/expr-lang/expr"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/urusofam/calculatorRestAPI/internal/server/models/calcualtion"
+	"github.com/urusofam/calculatorRestAPI/internal/server/models/calculation"
 	"github.com/urusofam/calculatorRestAPI/internal/server/models/calculation_request"
+	"github.com/urusofam/calculatorRestAPI/internal/storage"
 	"net/http"
 )
-
-var calculations = []calcualtion.Calculation{}
 
 func calculateExpression(expression string) (string, error) {
 	program, err := expr.Compile(expression)
@@ -26,66 +25,74 @@ func calculateExpression(expression string) (string, error) {
 	return fmt.Sprintf("%v", result), nil
 }
 
-func GetCalculations(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, calculations)
-}
-
-func PostCalculation(c *gin.Context) {
-	var req calculation_request.CalculationsRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	result, err := calculateExpression(req.Expression)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	calc := calcualtion.Calculation{
-		ID:         uuid.NewString(),
-		Expression: req.Expression,
-		Result:     result,
-	}
-	calculations = append(calculations, calc)
-
-	c.IndentedJSON(http.StatusCreated, result)
-}
-
-func PatchCalculation(c *gin.Context) {
-	id := c.Param("id")
-
-	var req calculation_request.CalculationsRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	result, err := calculateExpression(req.Expression)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-
-	for i, calc := range calculations {
-		if calc.ID == id {
-			calculations[i].Expression = req.Expression
-			calculations[i].Result = result
-			c.IndentedJSON(http.StatusOK, calculations[i])
+func GetCalculations(strg *storage.Storage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		calculations, err := strg.GetCalculations()
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		c.IndentedJSON(http.StatusOK, calculations)
 	}
-
-	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("calculation with id %s not found", id)})
 }
 
-func DeleteCalculation(c *gin.Context) {
-	id := c.Param("id")
-
-	for i, calc := range calculations {
-		if calc.ID == id {
-			calculations = append(calculations[:i], calculations[i+1:]...)
-			c.Status(http.StatusNoContent)
-			return
+func PostCalculation(strg *storage.Storage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req calculation_request.CalculationsRequest
+		if err := c.BindJSON(&req); err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
-	}
 
-	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("calculation with id %s not found", id)})
+		result, err := calculateExpression(req.Expression)
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		calc := calculation.Calculation{
+			ID:         uuid.NewString(),
+			Expression: req.Expression,
+			Result:     result,
+		}
+
+		err = strg.AddCalculation(calc)
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		c.IndentedJSON(http.StatusCreated, result)
+	}
+}
+
+func PatchCalculation(s *storage.Storage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		var req calculation_request.CalculationsRequest
+		if err := c.BindJSON(&req); err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		result, err := calculateExpression(req.Expression)
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		err = s.UpdateCalculation(req.Expression, result, id)
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+		c.IndentedJSON(http.StatusOK, id)
+	}
+}
+
+func DeleteCalculation(s *storage.Storage) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		err := s.DeleteCalculation(id)
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+		c.Status(http.StatusNoContent)
+	}
 }
