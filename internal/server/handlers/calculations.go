@@ -5,8 +5,8 @@ import (
 	"github.com/expr-lang/expr"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/urusofam/calculatorRestAPI/internal/http/models/calcualtion"
-	"github.com/urusofam/calculatorRestAPI/internal/http/models/calculation_request"
+	"github.com/urusofam/calculatorRestAPI/internal/server/models/calcualtion"
+	"github.com/urusofam/calculatorRestAPI/internal/server/models/calculation_request"
 	"net/http"
 )
 
