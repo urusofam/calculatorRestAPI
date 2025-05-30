@@ -68,7 +68,7 @@ func PatchCalculation(c *gin.Context) {
 		if calc.ID == id {
 			calculations[i].Expression = req.Expression
 			calculations[i].Result = result
-			c.IndentedJSON(http.StatusOK, calculations[i])
+			c.Status(http.StatusNoContent)
 			return
 		}
 	}
