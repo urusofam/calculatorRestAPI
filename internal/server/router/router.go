@@ -1,4 +1,4 @@
-package server
+package router
 
 import (
 	"github.com/gin-contrib/cors"
@@ -6,7 +6,7 @@ import (
 	"github.com/urusofam/calculatorRestAPI/internal/server/handlers"
 )
 
-func InitServer() (*gin.Engine, error) {
+func InitRouter() (*gin.Engine, error) {
 	router := gin.Default()
 
 	err := router.SetTrustedProxies(nil)

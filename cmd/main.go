@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/urusofam/calculatorRestAPI/config"
-	"github.com/urusofam/calculatorRestAPI/internal/server"
+	"github.com/urusofam/calculatorRestAPI/internal/server/router"
 	"log/slog"
 	"os"
 )
@@ -13,20 +13,20 @@ import (
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	config, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	logger.Info("config file loaded", slog.String("cfg", config.Server.Host))
+	logger.Info("config file loaded", slog.String("cfg", cfg.Server.Host))
 
 	dbURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		config.Database.User,
-		config.Database.Pass,
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.Name,
+		cfg.Database.User,
+		cfg.Database.Pass,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.Name,
 	)
 
 	conn, err := pgx.Connect(context.Background(), dbURL)
@@ -35,15 +35,20 @@ func main() {
 		os.Exit(1)
 	}
 	logger.Info("connected to database")
-	defer conn.Close(context.Background())
+	defer func(conn *pgx.Conn, ctx context.Context) {
+		err := conn.Close(ctx)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}(conn, context.Background())
 
-	router, err := server.InitServer()
+	rout, err := router.InitRouter()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	if err = router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)); err != nil {
+	if err = rout.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)); err != nil {
 		logger.Error(err.Error())
 	}
 }
