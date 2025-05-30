@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/urusofam/calculatorRestAPI/config"
-	"github.com/urusofam/calculatorRestAPI/http/handlers"
+	"github.com/urusofam/calculatorRestAPI/internal/http/handlers"
 	"log/slog"
 	"os"
 )
