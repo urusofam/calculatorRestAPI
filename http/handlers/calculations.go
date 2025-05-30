@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/expr-lang/expr"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,7 +23,7 @@ func calculateExpression(expression string) (string, error) {
 		return "", err
 	}
 
-	return result.(string), nil
+	return fmt.Sprintf("%v", result), nil
 }
 
 func GetCalculations(c *gin.Context) {
@@ -48,4 +49,29 @@ func PostCalculation(c *gin.Context) {
 	calculations = append(calculations, calc)
 
 	c.IndentedJSON(http.StatusCreated, result)
+}
+
+func PatchCalculation(c *gin.Context) {
+	id := c.Param("id")
+
+	var req calculation_request.CalculationsRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	result, err := calculateExpression(req.Expression)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	for i, calc := range calculations {
+		if calc.ID == id {
+			calculations[i].Expression = req.Expression
+			calculations[i].Result = result
+			c.IndentedJSON(http.StatusOK, calculations[i])
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("calculation with id %s not found", id)})
 }

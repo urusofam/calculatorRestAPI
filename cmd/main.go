@@ -28,6 +28,7 @@ func main() {
 	router.Use(cors.Default())
 	router.GET("/calculations", handlers.GetCalculations)
 	router.POST("/calculations", handlers.PostCalculation)
+	router.PATCH("/calculations/:id", handlers.PatchCalculation)
 
 	if err = router.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)); err != nil {
 		logger.Error(err.Error())
